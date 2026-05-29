@@ -18,6 +18,11 @@ begin
         select  sch.nspname as schema,
                 tabl.relname as tablename,
                 d.description as comment,
+                (select row_to_json(parts) partition
+                   from (select pg_get_partkeydef(tabl.oid) AS key 
+                           from pg_catalog.pg_partitioned_table p
+                          where p.partrelid = tabl.oid) parts
+                 ) as partition,
                 (select array_to_json(array_agg(row_to_json(col)))
                   from (select
                               t3.attname as name,
